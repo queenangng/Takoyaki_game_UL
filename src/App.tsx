@@ -1,19 +1,41 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-// 移除導致錯誤的 lucide-react 引用
-// import { Timer, Trophy, RotateCw, Utensils, Flame, CircleDashed, ShoppingBag } from 'lucide-react'; 
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-// --- 內建圖標組件 (免安裝 lucide-react) ---
-// 為了確保複製即用，這裡直接內建圖標 SVG
-const IconBase = ({ size = 24, className = "", children }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+// --- 1. 定義 TypeScript 介面與類型 (新增部分) ---
+
+interface IconBaseProps {
+  size?: number | string;
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: any; // 允許其他 props
+}
+
+interface Hole {
+  id: number;
+  status: 'empty' | 'batter' | 'tako' | 'cooking' | 'burnt';
+  progress: number;
+  flipCount: number;
+}
+
+interface BoxedItem {
+  id: number;
+  isPerfect: boolean;
+}
+
+type ColorTheme = 'yellow' | 'red' | 'blue' | 'green';
+
+// --- 2. 內建圖標組件 (加上類型定義) ---
+
+const IconBase = ({ size = 24, className = "", children, ...props }: IconBaseProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
 );
-const TrophyIcon = (p) => <IconBase {...p}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></IconBase>;
-const TimerIcon = (p) => <IconBase {...p}><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></IconBase>;
-const FlameIcon = (p) => <IconBase {...p}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3 .5.3 1 .8 1 1.5z"/></IconBase>;
-const UtensilsIcon = (p) => <IconBase {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></IconBase>;
-const CircleDashedIcon = (p) => <IconBase {...p}><path d="M10.1 2.182a10 10 0 0 1 3.8 0"/><path d="M17.609 3.694a10 10 0 0 1 2.696 2.695"/><path d="M21.818 10.1a10 10 0 0 1 0 3.8"/><path d="M20.306 17.609a10 10 0 0 1-2.695 2.696"/><path d="M13.9 21.818a10 10 0 0 1-3.8 0"/><path d="M6.391 20.306a10 10 0 0 1-2.696-2.695"/><path d="M2.182 13.9a10 10 0 0 1 0-3.8"/><path d="M3.694 6.391a10 10 0 0 1 2.695-2.696"/></IconBase>;
-const RotateCwIcon = (p) => <IconBase {...p}><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></IconBase>;
-const ShoppingBagIcon = (p) => <IconBase {...p}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></IconBase>;
+
+const TrophyIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></IconBase>;
+const TimerIcon = (p: IconBaseProps) => <IconBase {...p}><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></IconBase>;
+const FlameIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3 .5.3 1 .8 1 1.5z"/></IconBase>;
+const UtensilsIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></IconBase>;
+const CircleDashedIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M10.1 2.182a10 10 0 0 1 3.8 0"/><path d="M17.609 3.694a10 10 0 0 1 2.696 2.695"/><path d="M21.818 10.1a10 10 0 0 1 0 3.8"/><path d="M20.306 17.609a10 10 0 0 1-2.695 2.696"/><path d="M13.9 21.818a10 10 0 0 1-3.8 0"/><path d="M6.391 20.306a10 10 0 0 1-2.696-2.695"/><path d="M2.182 13.9a10 10 0 0 1 0-3.8"/><path d="M3.694 6.391a10 10 0 0 1 2.695-2.696"/></IconBase>;
+const RotateCwIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></IconBase>;
+const ShoppingBagIcon = (p: IconBaseProps) => <IconBase {...p}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></IconBase>;
 
 // 遊戲常數
 const GAME_DURATION = 60;
@@ -29,20 +51,21 @@ const STATE_COOKING = 'cooking';
 const STATE_BURNT = 'burnt';
 
 export default function App() {
-  const [gameState, setGameState] = useState('menu');
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'finished'>('menu');
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [selectedTool, setSelectedTool] = useState('batter');
-  const [boxedItems, setBoxedItems] = useState([]); 
+  const [selectedTool, setSelectedTool] = useState<'batter' | 'tako' | 'pick' | 'box'>('batter');
+  // 明確指定 boxedItems 為 BoxedItem 陣列
+  const [boxedItems, setBoxedItems] = useState<BoxedItem[]>([]); 
   
-  const initialHoles = Array(9).fill(null).map((_, i) => ({
+  const initialHoles: Hole[] = Array(9).fill(null).map((_, i) => ({
     id: i,
     status: STATE_EMPTY,
     progress: 0,
     flipCount: 0,
   }));
 
-  const [holes, setHoles] = useState(initialHoles);
+  const [holes, setHoles] = useState<Hole[]>(initialHoles);
   const scoreRef = useRef(0);
 
   const vibrate = useCallback((pattern = 50) => {
@@ -52,8 +75,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let timerInterval;
-    let gameLoopInterval;
+    // 修正 timerInterval 類型錯誤 (使用 any 或 NodeJS.Timeout)
+    let timerInterval: any;
+    let gameLoopInterval: any;
 
     if (gameState === 'playing') {
       timerInterval = setInterval(() => {
@@ -98,7 +122,8 @@ export default function App() {
     setBoxedItems([]); 
   };
 
-  const handleInteraction = (index, e) => {
+  // 為事件處理器添加類型
+  const handleInteraction = (index: number, e?: React.SyntheticEvent | React.PointerEvent) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     if (gameState !== 'playing') return;
 
@@ -145,6 +170,7 @@ export default function App() {
               const isPerfect = hole.progress >= 85;
               pointsToAdd = isPerfect ? 150 : 100;
               
+              // 因為 boxedItems 已定義類型，這裡不會再報錯
               setBoxedItems(prev => [...prev, { id: Date.now(), isPerfect }].slice(-8));
 
               newHoles[index] = { ...hole, status: STATE_EMPTY, progress: 0, flipCount: 0 };
@@ -170,7 +196,8 @@ export default function App() {
     </div>
   );
 
-  const renderSingleTakoyaki = (status, progress, flipCount, isPerfectOverride = null, isStatic = false) => {
+  // 為渲染函數參數添加類型
+  const renderSingleTakoyaki = (status: string, progress: number, flipCount: number, isPerfectOverride: boolean | null = null, isStatic = false) => {
     if (status === STATE_EMPTY && !isStatic) return null;
 
     if (status === STATE_BURNT) {
@@ -183,26 +210,24 @@ export default function App() {
     }
 
     let borderColorClass = 'border-[#E6D0A0]';
-    // 使用 style 變數來控制顏色，避免 Tailwind JIT 編譯遺漏
-    let bgColorStyle = '#F8E3B6'; // 預設顏色
+    let bgColorStyle = '#F8E3B6';
 
     const currentProgress = isStatic ? (isPerfectOverride ? 90 : 80) : progress;
     const isPerfect = isPerfectOverride !== null ? isPerfectOverride : (currentProgress >= PERFECT_MIN && currentProgress < BURNT_THRESHOLD);
 
-    // 根據狀態設定 HEX 顏色
     if (status === STATE_BATTER) { 
-        bgColorStyle = '#FFF8E1'; // 麵糊白
+        bgColorStyle = '#FFF8E1'; 
         borderColorClass = 'border-[#F5E6C8]';
     } else if (currentProgress < 40) { 
-        bgColorStyle = '#F8E3B6'; // 生
+        bgColorStyle = '#F8E3B6'; 
     } else if (currentProgress < 60) { 
-        bgColorStyle = '#F3D18A'; // 半熟
+        bgColorStyle = '#F3D18A'; 
         borderColorClass = 'border-[#E0BE75]'; 
     } else if (currentProgress < PERFECT_MIN) { 
-        bgColorStyle = '#E8B75F'; // 快熟了
+        bgColorStyle = '#E8B75F'; 
         borderColorClass = 'border-[#D4A34B]'; 
     } else { 
-        bgColorStyle = '#D98E2E'; // 完美金黃
+        bgColorStyle = '#D98E2E'; 
         borderColorClass = 'border-[#C27A22]'; 
     }
     
@@ -211,10 +236,8 @@ export default function App() {
     return (
       <div 
         className={`relative w-full h-full rounded-full border-2 ${borderColorClass} scale-[0.97] transition-colors duration-300 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] overflow-hidden flex items-center justify-center ${animationClass}`}
-        style={{ backgroundColor: bgColorStyle }} // [關鍵修復] 強制使用 inline style 上色
+        style={{ backgroundColor: bgColorStyle }}
       >
-        
-        {/* 麵糊反光 */}
         {status === STATE_BATTER && (
            <div className="absolute top-2 left-2 w-3 h-1.5 bg-white/60 rounded-full blur-[1px]" />
         )}
@@ -237,9 +260,19 @@ export default function App() {
     );
   };
 
-  const ToolButton = ({ id, icon: Icon, label, colorTheme }) => {
+  // 定義 ToolButton 的 props 類型
+  interface ToolButtonProps {
+    id: 'batter' | 'tako' | 'pick' | 'box';
+    icon: React.ComponentType<IconBaseProps>;
+    label: string;
+    colorTheme: ColorTheme;
+  }
+
+  const ToolButton = ({ id, icon: Icon, label, colorTheme }: ToolButtonProps) => {
     const isSelected = selectedTool === id;
-    const themes = {
+    
+    // 修正物件索引錯誤：明確定義 themes 的結構
+    const themes: Record<ColorTheme, { bg: string; border: string; text: string; icon: string }> = {
         yellow: { bg: 'bg-amber-100', border: 'border-amber-600', text: 'text-amber-900', icon: 'text-amber-600' },
         red:    { bg: 'bg-red-100',   border: 'border-red-600',   text: 'text-red-900',   icon: 'text-red-600' },
         blue:   { bg: 'bg-blue-100',  border: 'border-blue-600',  text: 'text-blue-900',  icon: 'text-blue-600' },
@@ -264,20 +297,9 @@ export default function App() {
     );
   };
 
-  const MatsuriLantern = ({ className }) => (
-    <svg className={className} viewBox="0 0 100 140" width="60" height="84">
-      <path d="M20 10 h60 v5 h-60 z" fill="#333" />
-      <path d="M10 15 h80 v110 h-80 z" fill="#E63946" stroke="#B91C1C" strokeWidth="2" />
-      <path d="M20 125 h60 v5 h-60 z" fill="#333" />
-      <path d="M10 35 h80 M10 55 h80 M10 75 h80 M10 95 h80 M10 115 h80" stroke="#B91C1C" strokeWidth="1" opacity="0.5" />
-      <text x="50" y="75" textAnchor="middle" fill="#FFF" fontSize="40" fontFamily="serif" fontWeight="bold">祭</text>
-    </svg>
-  );
-
   return (
     <div className="min-h-screen bg-[#FDF6E3] text-gray-800 font-sans select-none flex flex-col max-w-md mx-auto shadow-2xl overflow-hidden relative border-x-2 border-[#E6D0A0]">
-      
-      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSIjQzQzRTMxIiBmaWxsLW9wYWNpdHk9IjAuNCI+PHBhdGggZD0iTTIwIDIwYzAgNS41Mi00LjQ4IDEwLTEwIDEwUzAgMjUuNTIgMCAyMGgxMGMwLTUuNTIgNC40OC0xMCAxMC0xMHMxMCA0LjQ4IDEwIDEwaDEweiIvPjwvZz48L3N2Zz4=')] pointer-events-none" />
+      <div className="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSIjRkZBMzcyIiBmaWxsLW9wYWNpdHk9IjAuNCI+PHBhdGggZD0iTTIwIDIwYzAtMTEuMDUgOC45NS0yMCAyMC0yMHMyMCA4Ljk1IDIwIDIwLTguOTUgMjAtMjAgMjAtMjAtOC45NS0yMC0yMHptMjAgMGMwLTguMjggNi43Mi0xNSAxNS0xNXMxNSA2LjcyIDE1IDE1LTYuNzIgMTUtMTUgMTUtMTUtNi43Mi0xNS0xNXptMCAwYzAtNS41MiA0LjQ4LTEwIDEwLTEwczEwIDQuNDggMTAgMTAtNC40OCAxMC0xMCAxMC0xMC00LjQ4LTEwLTEwem0wIDBjMC0yLjc2IDIuMjQtNSA1LTVzNSAyLjg1IDUgNS0yLjg1IDUtNSA1LTUtMi44NS01LTV6TTIwIDBjMCAxMS4wNS04Ljk1IDIwLTIwIDIwUzAgMTEuMDUgMCAwIDguOTUtMjAgMjAtMjAyMCA4Ljk1IDIwIDB6bS0yMCAwYzAgOC4yOCA2LjcyIDE1IDE1IDE1czE1LTYuNzIgMTUtMTUtNi43Mi0xNS0xNS0xNVMwLTYuNzIgMCAwem0wIDBjMCA1LjUyIDQuNDggMTAgMTAgMTBzMTAtNC40OCAxMC0xMC00LjQ4LTEwLTEwLTEwLTEwIDQuNDgtMTAgMTB6bTAgMGMwIDIuNzYgMi4yNCA1IDUgNXM1LTIuODUgNS01LTIuODUtNS01LTUtNSAyLjg1LTUgNXoiLz48L2c+PC9zdmc+')] pointer-events-none" />
 
       <header className="bg-gradient-to-b from-[#C43E31] to-[#A62B1F] text-white p-4 pt-6 rounded-b-2xl shadow-lg z-30 relative overflow-hidden border-b-4 border-[#8B2319]">
         <div className="flex justify-between items-center relative z-10">
@@ -300,31 +322,13 @@ export default function App() {
       <main className="flex-1 flex flex-col items-center justify-start p-4 relative z-10 w-full space-y-4">
         
         {gameState === 'menu' && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-center bg-[#FFF8E1] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-32">
-               <div className="absolute top-[-10px] left-0 right-0 h-[40px] border-b-4 border-[#5D4037] rounded-[50%] scale-x-150"></div>
-               <MatsuriLantern className="absolute top-2 left-4 animate-swing" />
-               <MatsuriLantern className="absolute top-12 right-8 animate-swing-delay" />
-               <MatsuriLantern className="absolute top-4 left-1/2 -translate-x-1/2 scale-75 opacity-80 blur-[1px]" />
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-center p-8 bg-[#FDF6E3]/95 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-orange-400 to-red-500 p-6 rounded-full mb-6 shadow-xl animate-bounce-gentle border-4 border-orange-200">
+              <FlameIcon size={64} className="text-yellow-100" />
             </div>
-            
-            <div className="relative z-10 p-8 border-4 border-[#8B2319] rounded-lg bg-white shadow-2xl max-w-xs mx-auto">
-               <div className="bg-gradient-to-br from-orange-400 to-red-500 p-6 rounded-full mb-6 shadow-xl mx-auto w-24 h-24 flex items-center justify-center border-4 border-orange-200">
-                 <FlameIcon size={48} className="text-yellow-100" />
-               </div>
-               <h2 className="text-4xl font-black text-[#8B2319] mb-2 tracking-widest" style={{ fontFamily: '"Noto Serif JP", serif' }}>夏祭開幕</h2>
-               <div className="w-full h-0.5 bg-[#E6D0A0] my-4"></div>
-               <p className="text-[#5D4037] mb-8 font-medium text-sm leading-relaxed">
-                 傳說中的職人技藝！<br/>
-                 用竹籤挑起金黃色的美味，<br/>
-                 挑戰最高營業額！
-               </p>
-               <button type="button" onClick={startGame} className="bg-[#C43E31] text-white w-full py-4 rounded-md text-xl font-bold shadow-[0_4px_0_#8B2319] active:shadow-none active:translate-y-1 transition-all border-2 border-[#8B2319] flex items-center justify-center gap-2">
-                 <UtensilsIcon size={20} /> 開始營業
-               </button>
-            </div>
-            
-            <div className="absolute bottom-0 left-0 right-0 h-24 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSIjQzQzRTMxIiBmaWxsLW9wYWNpdHk9IjAuNCI+PHBhdGggZD0iTTIwIDIwYzAgNS41Mi00LjQ4IDEwLTEwIDEwUzAgMjUuNTIgMCAyMGgxMGMwLTUuNTIgNC40OC0xMCAxMC0xMHMxMCA0LjQ4IDEwIDEwaDEweiIvPjwvZz48L3N2Zz4=')]"></div>
+            <h2 className="text-3xl font-extrabold text-[#4A2511] mb-2 tracking-wider">夏日祭典開始！</h2>
+            <p className="text-[#7A4F31] mb-8 font-medium">製作最頂級的黃金章魚燒！<br/>注意火候，加上滿滿的配料！</p>
+            <button type="button" onClick={startGame} className="bg-gradient-to-r from-red-600 to-red-700 text-white px-10 py-4 rounded-full text-xl font-bold shadow-lg border-b-4 border-red-900 hover:-translate-y-1 active:translate-y-0 active:border-b-0 transition-all w-full max-w-xs cursor-pointer">開張大吉！</button>
           </div>
         )}
 
